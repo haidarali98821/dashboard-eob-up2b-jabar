@@ -65,6 +65,10 @@ a{color:var(--accent)}
 .srcbar .wrap{padding-block:12px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
 .srcinfo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;min-width:0;font-size:13.5px;color:var(--muted)}
 .srcinfo b{color:var(--ink)}
+.srcbar.contoh{background:var(--warn-bg);border-bottom-color:var(--warn)}
+.srcbar.contoh .srcinfo{color:var(--ink)}
+.petunjuk{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--ink);min-width:0}
+.petunjuk .ic{flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--accent);color:var(--accent-ink);margin-top:1px}
 .btn{font:inherit;font-size:14px;font-weight:600;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;gap:8px}
 .btn.ghost{background:transparent;color:var(--accent)}
 .btn[disabled]{opacity:.6;cursor:progress}
@@ -194,7 +198,7 @@ html{scroll-behavior:smooth}
   <div class="wrap">
     <div class="srcinfo">
       <span class="tag" id="src-tag">–</span>
-      <span id="src-text">Memuat data…</span>
+      <span class="petunjuk"><span class="ic" aria-hidden="true">i</span><span id="src-text">Memuat data…</span></span>
     </div>
     <div class="srcact">
       <label class="btn" for="file" id="btn-upload">Unggah Excel EOB</label>
@@ -457,11 +461,12 @@ function ssRows(bulan, ambang){
 /* ---------- Sumber data ---------- */
 function renderSource(){
   const sam = D.meta.samaran;
-  $('#src-tag').className = 'tag ' + (sam ? 'info' : 'good');
-  $('#src-tag').textContent = sam ? 'Data contoh' : 'Data dari file';
+  $('#srcbar').classList.toggle('contoh', !!sam);
+  $('#src-tag').className = 'tag ' + (sam ? 'warn' : 'good');
+  $('#src-tag').textContent = sam ? 'DATA CONTOH' : 'Data dari file';
   $('#src-text').innerHTML = sam
-    ? 'Nama instalasi disamarkan dan angka diskalakan. Unggah file <b>Lampiran EOB</b> untuk melihat data asli; file hanya dibaca di browser ini.'
-    : `<b>${esc(D.meta.sumber)}</b> · dibaca di browser ini, tidak dikirim ke mana pun.`;
+    ? '<b>Angka di halaman ini bukan angka asli.</b> Klik <b>Unggah Excel EOB</b> untuk melihat data bulan berjalan, lalu mulai baca dari <b>Temuan utama</b>.'
+    : `<b>${esc(D.meta.sumber)}</b> terbaca. Mulai dari <b>Temuan utama</b>, lalu cek <b>Catatan Data</b> sebelum dipaparkan. File hanya dibaca di browser ini.`;
   $('#btn-contoh').hidden = sam;
   $('#m-periode').textContent = D.meta.periode + (sam ? ' (contoh)' : '');
   $('#f-src').textContent = 'Sumber data: ' + D.meta.sumber + '.';
