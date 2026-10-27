@@ -34,9 +34,9 @@ Prototipe final project training Claude. Dashboard web yang mengubah file Excel 
 
 ## Hasil yang didapat
 
-**Temuan utama dalam kalimat**, misalnya untuk data September 2026:
-- Beban puncak 7.751 MW menjadi rekor baru, 2,8% di atas rekor sebelumnya.
-- 5 dari 12 sub sistem berstatus waspada dengan cadangan di bawah 400 MW.
+**Temuan utama dalam kalimat**, misalnya dari data contoh (samaran) di tampilan awal:
+- Beban puncak 6.976 MW menjadi rekor baru, 2,8% di atas rekor sebelumnya.
+- 7 dari 12 sub sistem berstatus waspada dengan cadangan di bawah 400 MW.
 - 4 gangguan transmisi, 2 di antaranya menyebabkan padam.
 
 **Tujuh modul evaluasi:**
