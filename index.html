@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Evaluasi Operasi UP2B Jabar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Dashboard Evaluasi Operasi Bulanan sistem kelistrikan PLN UP2B Jawa Barat untuk Manajemen Atas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: panel ruang kendali. Pita sumber data di atas, navigasi lengket, tujuh modul bertumpuk; ringkasan selalu sebelum detail. */
+:root{
+  --bg:#EEF2F6; --surface:#FFFFFF; --surface-2:#F6F8FB; --ink:#132033; --muted:#566376; --faint:#7D8A9C; --line:#D7DEE7;
+  --accent:#0A5BB0; --accent-ink:#FFFFFF;
+  --dmp:#1E5FC2; --beban:#E07A1F; --cadangan:#8CC3EE;
+  --s1:#1E5FC2; --s2:#E07A1F; --s3:#2E9C8F; --s4:#8B5CC7; --s5:#C2457A; --ref:#9AA6B6;
+  --good:#1F8A4C; --good-bg:#E3F3E9; --warn:#A35A00; --warn-bg:#FBE4E7; --crit:#B4232F; --crit-bg:#F6C3C8;
+  --info:#2C5C8F; --info-bg:#E4EEF8;
+  --q1:#DCE9F7; --q2:#9DC3EC; --q3:#4F8FD6; --q4:#B4232F;
+  --f-sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1520; --surface:#152130; --surface-2:#1A2838; --ink:#E5ECF4; --muted:#9FADBF; --faint:#7F8DA0; --line:#28384B;
+  --accent:#5EA3EE; --accent-ink:#0D1520;
+  --dmp:#4E8DEB; --beban:#F29544; --cadangan:#A6D3F5;
+  --s1:#4E8DEB; --s2:#F29544; --s3:#43B8A9; --s4:#A782E0; --s5:#E2689C; --ref:#6F7E91;
+  --good:#5CC98A; --good-bg:#173628; --warn:#F2B866; --warn-bg:#3A2329; --crit:#FF7C86; --crit-bg:#57222A;
+  --info:#8EC0F2; --info-bg:#1B3049;
+  --q1:#22374F; --q2:#2F5F93; --q3:#5E9FE6; --q4:#FF7C86;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1520; --surface:#152130; --surface-2:#1A2838; --ink:#E5ECF4; --muted:#9FADBF; --faint:#7F8DA0; --line:#28384B;
+  --accent:#5EA3EE; --accent-ink:#0D1520;
+  --dmp:#4E8DEB; --beban:#F29544; --cadangan:#A6D3F5;
+  --s1:#4E8DEB; --s2:#F29544; --s3:#43B8A9; --s4:#A782E0; --s5:#E2689C; --ref:#6F7E91;
+  --good:#5CC98A; --good-bg:#173628; --warn:#F2B866; --warn-bg:#3A2329; --crit:#FF7C86; --crit-bg:#57222A;
+  --info:#8EC0F2; --info-bg:#1B3049;
+  --q1:#22374F; --q2:#2F5F93; --q3:#5E9FE6; --q4:#FF7C86;
+  color-scheme:dark}
+
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;margin:0}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.mast{background:var(--surface);border-bottom:1px solid var(--line)}
+.mast .wrap{padding-block:20px 16px;display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.mast h1{font-size:clamp(22px,3vw,30px);font-weight:700;letter-spacing:-.01em;line-height:1.2;margin-top:4px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:13px;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+.pill b{color:var(--ink);font-weight:600}
+
+/* Pita sumber data */
+.srcbar{background:var(--surface-2);border-bottom:1px solid var(--line)}
+.srcbar .wrap{padding-block:12px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;justify-content:space-between}
+.srcinfo{display:flex;gap:10px;align-items:center;flex-wrap:wrap;min-width:0;font-size:13.5px;color:var(--muted)}
+.srcinfo b{color:var(--ink)}
+.btn{font:inherit;font-size:14px;font-weight:600;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);display:inline-flex;align-items:center;gap:8px}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn[disabled]{opacity:.6;cursor:progress}
+.srcact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.msg{font-size:13.5px;border-radius:8px;padding:9px 12px;border:1px solid var(--line);background:var(--surface)}
+.msg.err{border-color:var(--crit);color:var(--crit);background:var(--crit-bg)}
+.msg.ok{border-color:var(--good);color:var(--good);background:var(--good-bg)}
+body.dragging .srcbar{outline:2px dashed var(--accent);outline-offset:-4px}
+
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--line)}
+.nav .wrap{overflow-x:auto;scrollbar-width:none}
+.nav .wrap::-webkit-scrollbar{display:none}
+.nav ol{list-style:none;margin:0;padding:0;display:flex;gap:4px;white-space:nowrap}
+.nav a{display:block;padding:11px 12px;font-size:14px;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;font-weight:500}
+.nav a:hover{color:var(--ink)}
+.nav a.on{color:var(--ink);border-bottom-color:var(--accent)}
+.nav a span{font-family:var(--f-mono);font-size:12px;color:var(--faint);margin-right:6px}
+.nav a .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--crit);margin-left:6px;vertical-align:1px}
+
+main .wrap{padding-block:24px 48px;display:grid;gap:40px}
+section{scroll-margin-top:calc(56px + env(safe-area-inset-top,0px));display:grid;gap:16px;min-width:0}
+.sec-head{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:10px}
+.sec-head h2{font-size:20px;font-weight:650}
+.sec-head h2 .no{font-family:var(--f-mono);font-size:14px;color:var(--faint);font-weight:500;margin-right:10px}
+.src{font-size:12.5px;color:var(--faint)}
+.mod-body{display:grid;gap:16px;min-width:0}
+.mod-error{border:1px dashed var(--crit);background:var(--surface);border-radius:var(--r);padding:16px 18px;display:grid;gap:6px}
+.mod-error b{color:var(--crit)}
+.mod-error p{margin:0;color:var(--muted);font-size:14px}
+
+.grid{display:grid;gap:16px;min-width:0}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0;display:grid;gap:12px;align-content:start}
+.panel h3{font-size:15px;font-weight:600}
+.panel .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.ph{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:flex-start}
+.chart{position:relative;width:100%;min-width:0}
+.h260{height:260px}.h300{height:300px}.h420{height:420px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:4px;align-content:start;min-width:0}
+.kpi .lbl{font-size:12.5px;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:26px;font-weight:600;line-height:1.15;letter-spacing:-.01em}
+.kpi .val small{font-size:14px;color:var(--muted);font-weight:500;margin-left:4px}
+.kpi .note{font-size:12.5px;color:var(--muted)}
+.kpi.hero{grid-column:span 2;border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.kpi.hero .val{font-size:40px}
+@media (max-width:460px){.kpi.hero{grid-column:span 1}.kpi.hero .val{font-size:34px}}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:5px;padding:2px 8px;width:max-content;max-width:100%}
+.tag.good{color:var(--good);background:var(--good-bg)}
+.tag.warn{color:var(--warn);background:var(--warn-bg)}
+.tag.crit{color:var(--crit);background:var(--crit-bg)}
+.tag.info{color:var(--info);background:var(--info-bg)}
+.tag.neutral{color:var(--muted);background:var(--surface-2);border:1px solid var(--line)}
+
+/* Temuan utama */
+.temuan{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:10px}
+.temuan h3{font-size:15px;font-weight:600}
+.temuan ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.temuan li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;font-size:14.5px}
+.temuan li .tag{margin-top:2px}
+
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface-2);flex-wrap:wrap}
+.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--muted);padding:6px 11px;cursor:pointer;font-weight:500}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.ctrl label{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+select{font:inherit;font-size:13px;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+input[type=range]{accent-color:var(--accent);width:150px}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend i.line{height:3px;border-radius:2px;vertical-align:3px}
+.legend i.dash{height:0;border-top:2px dashed var(--ref);background:none!important;vertical-align:3px}
+
+.tbl-wrap{overflow-x:auto;min-width:0;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.minibar{display:flex;height:10px;border-radius:3px;overflow:hidden;min-width:120px;background:var(--surface-2);gap:1px}
+.minibar span{display:block;height:100%}
+
+.slist{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.slist li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);font-size:14px}
+.slist li .nm{min-width:0}
+.slist li .nm small{display:block;color:var(--faint);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slist li .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;font-size:13.5px}
+.slist li .v small{display:block;color:var(--muted);font-size:12px}
+
+.cal{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.cal div{aspect-ratio:1;max-width:100%;border-radius:6px;background:var(--good-bg);display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;color:var(--good)}
+.cal div.t{background:var(--crit-bg);color:var(--crit);font-weight:600}
+.cal div.d{background:var(--warn-bg);color:var(--warn);font-weight:600}
+.cal div.t.d{background:var(--crit-bg)}
+
+.notes{margin:0;padding:0;list-style:none;display:grid;gap:8px;max-width:100ch}
+.notes li{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.notes li small{display:block;color:var(--faint);font-size:12px;margin-bottom:2px}
+.callout{border:1px solid var(--line);border-left:3px solid var(--warn);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;color:var(--muted)}
+.callout b{color:var(--ink)}
+footer{border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{padding-block:20px 28px;font-size:12.5px;color:var(--faint);display:grid;gap:4px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+html{scroll-behavior:smooth}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">PT PLN (Persero) · UP2B Jawa Barat</div>
+      <h1>Dashboard Evaluasi Operasi Sistem</h1>
+    </div>
+    <div class="meta">
+      <span class="pill">Periode <b id="m-periode">–</b></span>
+      <span class="pill">Sistem <b>500 · 150 · 70 kV</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="srcbar" id="srcbar">
+  <div class="wrap">
+    <div class="srcinfo">
+      <span class="tag" id="src-tag">–</span>
+      <span id="src-text">Memuat data…</span>
+    </div>
+    <div class="srcact">
+      <label class="btn" for="file" id="btn-upload">Unggah Excel EOB</label>
+      <input type="file" id="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <button type="button" class="btn ghost" id="btn-contoh" hidden>Kembali ke data contoh</button>
+    </div>
+    <div class="msg" id="src-msg" hidden></div>
+  </div>
+</div>
+
+<nav class="nav" aria-label="Modul dashboard">
+  <div class="wrap">
+    <ol id="navlist">
+      <li><a href="#ringkasan" data-mod="ringkasan"><span>1</span>Ringkasan</a></li>
+      <li><a href="#beban" data-mod="beban"><span>2</span>Beban Puncak</a></li>
+      <li><a href="#pasokan" data-mod="pasokan"><span>3</span>Pasokan Sub Sistem</a></li>
+      <li><a href="#keandalan" data-mod="keandalan"><span>4</span>Keandalan</a></li>
+      <li><a href="#tegangan" data-mod="tegangan"><span>5</span>Mutu Tegangan</a></li>
+      <li><a href="#pembebanan" data-mod="pembebanan"><span>6</span>Pembebanan</a></li>
+      <li><a href="#rob" data-mod="rob"><span>7</span>Pekerjaan ROB</a></li>
+      <li><a href="#catatan"><span>·</span>Catatan Data</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+<div class="wrap">
+
+<section id="ringkasan" aria-labelledby="h-ringkasan">
+  <div class="sec-head"><h2 id="h-ringkasan"><span class="no">01</span>Ringkasan Bulan Ini</h2><span class="src">Sumber: sheet Rangkuman</span></div>
+  <div class="mod-error" hidden></div>
+  <div class="mod-body">
+    <div class="temuan"><h3>Temuan utama</h3><ul id="temuan"></ul></div>
+    <div class="kpis" id="kpis"></div>
+  </div>
+</section>
+
+<section id="beban" aria-labelledby="h-beban">
+  <div class="sec-head"><h2 id="h-beban"><span class="no">02</span>Tren Beban Puncak</h2><span class="src">Sumber: Tabel 1 (diversity), Load Factor</span></div>
+  <div class="mod-error" hidden></div>
+  <div class="mod-body">
+  <div class="grid g2">
+    <div class="panel">
+      <div class="ph">
+        <div><h3>Beban puncak bulanan, <span class="y-prev"></span> vs <span class="y-cur"></span></h3><div class="sub">MW · beban puncak diversity UP2B Jabar</div></div>
+        <div class="seg" role="group" aria-label="Pilih waktu beban puncak">
+          <button type="button" id="bp-malam" aria-pressed="true">Malam</button>
+          <button type="button" id="bp-siang" aria-pressed="false">Siang</button>
+        </div>
+      </div>
+      <div class="legend"><span><i class="line" style="background:var(--s1)"></i><span class="y-cur"></span></span><span><i class="dash"></i><span class="y-prev"></span></span></div>
+      <div class="chart h300"><canvas id="c-bp" role="img" aria-label="Grafik garis beban puncak bulanan"></canvas></div>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <div><h3>Pertumbuhan terhadap bulan yang sama tahun lalu</h3><div class="sub">% · beban puncak malam</div></div>
+        <div class="chart" style="height:200px"><canvas id="c-growth" role="img" aria-label="Grafik batang pertumbuhan beban puncak"></canvas></div>
+      </div>
+      <div class="panel">
+        <div><h3>Faktor beban bulanan</h3><div class="sub">% · rata-rata beban dibagi beban puncak</div></div>
+        <div class="chart" style="height:170px"><canvas id="c-lf" role="img" aria-label="Grafik faktor beban bulanan"></canvas></div>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section id="pasokan" aria-labelledby="h-pasokan">
+  <div class="sec-head"><h2 id="h-pasokan"><span class="no">03</span>Kesiapan Pasokan per Sub Sistem</h2><span class="src">Sumber: Tabel BP Koinsiden APB per SS</span></div>
+  <div class="mod-error" hidden></div>
+  <div class="mod-body">
+  <div class="panel">
+    <div class="ph">
+      <div><h3>Daya Mampu Pasok, Beban Puncak Koinsiden, dan Cadangan</h3><div class="sub">MW · Cadangan = Daya Mampu Pasok − Beban · DMP = DMN IBT + KIT − Outage & Derating</div></div>
+      <div class="ctrl">
+        <label for="ss-bulan">Bulan <select id="ss-bulan"></select></label>
+        <label for="ss-ambang">Simulasi ambang waspada <input type="range" id="ss-ambang" min="100" max="800" step="50" value="400"> <b class="num" id="ss-ambang-v">400 MW</b></label>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--dmp)"></i>Daya Mampu Pasok</span>
+      <span><i style="background:var(--beban)"></i>Beban Puncak Koinsiden</span>
+      <span><i style="background:var(--cadangan)"></i>Cadangan</span>
+      <span><i style="background:var(--warn-bg);border:1px solid var(--warn)"></i>Waspada (cadangan &lt; ambang)</span>
+      <span><i style="background:var(--crit-bg);border:1px solid var(--crit)"></i>Defisit (cadangan &lt; 0)</span>
+    </div>
+    <div class="chart h420" id="ss-box"><canvas id="c-ss" role="img" aria-label="Grafik batang pasokan daya per sub sistem"></canvas></div>
+  </div>
+  <div class="grid g2">
+    <div class="panel">
+      <div><h3>Sub sistem perlu perhatian</h3><div class="sub" id="ss-sub">Urut dari cadangan terkecil</div></div>
+      <ul class="slist" id="ss-list"></ul>
+    </div>
+    <div class="panel">
+      <div><h3>Total UP2B Jawa Barat</h3><div class="sub">Penjumlahan seluruh sub sistem pada bulan terpilih</div></div>
+      <div class="kpis" id="ss-total" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))"></div>
+      <div class="callout"><b>Batasan:</b> analisis ini kondisi normal. Skenario N-1/kontingensi belum tercakup karena datanya belum tersedia. Ambang resmi 400 MW berlaku sama untuk semua sub sistem; slider hanya untuk simulasi.</div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section id="keandalan" aria-labelledby="h-keandalan">
+  <div class="sec-head"><h2 id="h-keandalan"><span class="no">04</span>Keandalan Sistem</h2><span class="src">Sumber: Tabel 3, 4, 7.1, 8, HTGP</span></div>
+  <div class="mod-error" hidden></div>
+  <div class="mod-body">
+  <div class="kpis" id="kpi-andal"></div>
+  <div class="grid g2">
+    <div class="panel">
+      <div><h3>Outage akibat gangguan per bulan</h3><div class="sub">kali · penghantar dan trafo (Tabel 3)</div></div>
+      <div class="legend"><span><i style="background:var(--s1)"></i>Penghantar</span><span><i style="background:var(--s2)"></i>Trafo</span></div>
+      <div class="chart h260"><canvas id="c-out" role="img" aria-label="Grafik batang jumlah outage gangguan per bulan"></canvas></div>
+    </div>
+    <div class="panel">
+      <div><h3>Penyebab gangguan, kumulatif sejak Januari</h3><div class="sub">kali · kategori tanpa kejadian disembunyikan (Tabel 4)</div></div>
+      <div class="legend"><span><i style="background:var(--crit)"></i>Padam</span><span><i style="background:var(--ref)"></i>Tidak padam</span></div>
+      <div class="chart h260"><canvas id="c-sebab" role="img" aria-label="Grafik batang penyebab gangguan kumulatif"></canvas></div>
+    </div>
+    <div class="panel">
+      <div><h3>System Recovery Time (SRT) bulanan</h3><div class="sub">menit · gangguan kecil &lt;5% (Tabel 8)</div></div>
+      <div class="chart h260"><canvas id="c-srt" role="img" aria-label="Grafik batang SRT bulanan"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><div><h3>Hari Tanpa GI Padam, <span id="htgp-bln"></span></h3><div class="sub">Kotak berwarna = ada GI padam pada tanggal tersebut</div></div><span class="tag good" id="htgp-tag"></span></div>
+      <div class="legend"><span><i style="background:var(--good-bg);border:1px solid var(--good)"></i>Tanpa GI padam</span><span><i style="background:var(--crit-bg);border:1px solid var(--crit)"></i>Padam transmisi</span><span><i style="background:var(--warn-bg);border:1px solid var(--warn)"></i>Padam distribusi</span></div>
+      <div class="cal" id="cal"></div>
+      <div class="sub" id="htgp-trend"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <div><h3>Gangguan sistem transmisi bulan ini</h3><div class="sub">Tabel 7.1 · padam dalam MW, ENS dalam MWh, SRT dalam menit</div></div>
+    <div class="tbl-wrap"><table id="t-ggn"></table></div>
+  </div>
+  </div>
+</section>
+
+<section id="tegangan" aria-labelledby="h-tegangan">
+  <div class="sec-head"><h2 id="h-tegangan"><span class="no">05</span>Mutu Tegangan</h2><span class="src">Sumber: Tabel 9, Tabel 10</span></div>
+  <div class="mod-error" hidden></div>
+  <div class="mod-body">
+  <div class="grid g2">
+    <div class="panel">
+      <div class="ph">
+        <div><h3>Tegangan minimum dan maksimum, realisasi vs rencana</h3><div class="sub">kV · per bulan</div></div>
+        <div class="seg" role="group" aria-label="Pilih level tegangan" id="lv-seg"></div>
+      </div>
+      <div class="legend"><span><i class="line" style="background:var(--s1)"></i>Realisasi maks</span><span><i class="line" style="background:var(--s2)"></i>Realisasi min</span><span><i class="dash"></i>Batas rencana</span></div>
+      <div class="chart h300"><canvas id="c-teg" role="img" aria-label="Grafik tegangan minimum dan maksimum"></canvas></div>
+    </div>
+    <div class="panel">
+      <div><h3>Bulan ini per level tegangan</h3><div class="sub">Realisasi dibandingkan rentang rencana</div></div>
+      <div class="tbl-wrap"><table id="t-teg"></table></div>
+      <div class="kpis" id="kpi-eks" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))"></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section id="pembebanan" aria-labelledby="h-pembebanan">
+  <div class="sec-head"><h2 id="h-pembebanan"><span class="no">06</span>Pembebanan Penghantar dan Trafo</h2><span class="src">Sumber: Gambar 2.1/2.2, Data Python Pembebanan IBT/Trafo</span></div>
+  <div class="mod-error" hidden></div>
+  <div class="mod-body">
+  <div class="grid g2">
+    <div class="panel">
+      <div><h3>Penghantar berbeban &gt;60%</h3><div class="sub">sirkit · per level tegangan</div></div>
+      <div class="legend" id="lg-pht"></div>
+      <div class="chart h260"><canvas id="c-pht" role="img" aria-label="Grafik penghantar berbeban di atas 60 persen"></canvas></div>
+    </div>
+    <div class="panel">
+      <div><h3>Trafo berbeban &gt;80%</h3><div class="sub">unit · per jenis trafo</div></div>
+      <div class="legend" id="lg-trf"></div>
+      <div class="chart h260"><canvas id="c-trf" role="img" aria-label="Grafik trafo berbeban di atas 80 persen"></canvas></div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="panel">
+      <div><h3>Sebaran pembebanan IBT</h3><div class="sub">% waktu dalam sebulan di tiap pita beban · urut dari porsi &gt;60% terbesar</div></div>
+      <div class="legend"><span><i style="background:var(--q1)"></i>0–40%</span><span><i style="background:var(--q2)"></i>40–60%</span><span><i style="background:var(--q3)"></i>60–80%</span><span><i style="background:var(--q4)"></i>80–100%</span></div>
+      <div class="chart" id="ibt-box"><canvas id="c-ibt" role="img" aria-label="Grafik sebaran pembebanan IBT"></canvas></div>
+    </div>
+    <div class="panel">
+      <div><h3>12 trafo dengan porsi waktu berbeban &gt;60% terbesar</h3><div class="sub">dari <span id="trf-n"></span> trafo · % waktu dalam sebulan</div></div>
+      <div class="tbl-wrap"><table id="t-trf"></table></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section id="rob" aria-labelledby="h-rob">
+  <div class="sec-head"><h2 id="h-rob"><span class="no">07</span>Realisasi Pekerjaan ROB</h2><span class="src">Sumber: Evaluasi Pekerjaan ROB</span></div>
+  <div class="mod-error" hidden></div>
+  <div class="mod-body">
+  <div class="kpis" id="kpi-rob"></div>
+  <div class="grid g2">
+    <div class="panel">
+      <div><h3>Status pekerjaan per jenis rencana</h3><div class="sub">jumlah pekerjaan, dihitung dari daftar pekerjaan</div></div>
+      <div class="legend"><span><i style="background:var(--good)"></i>Terlaksana</span><span><i style="background:var(--s2)"></i>ABK</span><span><i style="background:var(--ref)"></i>Status belum diisi</span></div>
+      <div class="chart h260"><canvas id="c-rob" role="img" aria-label="Grafik status pekerjaan ROB per jenis"></canvas></div>
+    </div>
+    <div class="panel">
+      <div><h3>Status pekerjaan per level tegangan</h3><div class="sub">jumlah pekerjaan</div></div>
+      <div class="tbl-wrap"><table id="t-rob"></table></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section id="catatan" aria-labelledby="h-catatan">
+  <div class="sec-head"><h2 id="h-catatan"><span class="no">··</span>Catatan Kualitas Data</h2><span class="src">Diperiksa otomatis saat file dibaca; data tidak diubah</span></div>
+  <ul class="notes" id="notes"></ul>
+</section>
+
+</div>
+</main>
+
+<footer><div class="wrap"><span id="f-src"></span><span>File Excel yang diunggah dibaca di browser ini saja dan tidak dikirim ke server mana pun. Angka yang dihitung ulang: Daya Mampu Pasok dan cadangan per sub sistem. Verifikasi oleh penyusun tetap diperlukan sebelum dipaparkan.</span></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="xlsx-lite.js"></script>
+<script src="eob-reader.js"></script>
+<script src="samaran.js"></script>
+<script>
+(function(){
+let D = window.EOB_DEFAULT;
+const $ = s => document.querySelector(s);
+const nf = (x,d=0) => x==null||isNaN(x) ? '–' : Number(x).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const BLN_ALL = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const charts = {};
+const hasChart = typeof window.Chart === 'function';
+function mk(id,cfg){ if(!hasChart) return null; if(charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); return charts[id]; }
+let BLN, LAST, YEAR;
+
+function baseOpts(extra={}){
+  const ink=css('--muted'), grid=css('--line');
+  return Object.assign({
+    responsive:true, maintainAspectRatio:false, animation:{duration:300},
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},
+      tooltip:{backgroundColor:css('--surface'),titleColor:css('--ink'),bodyColor:css('--ink'),footerColor:css('--muted'),borderColor:css('--line'),borderWidth:1,padding:10,
+        titleFont:{family:'IBM Plex Sans',weight:'600'},bodyFont:{family:'IBM Plex Mono',size:12},boxPadding:4,usePointStyle:true}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:ink,font:{family:'IBM Plex Sans',size:12}},border:{color:grid}},
+      y:{grid:{color:grid,drawTicks:false},border:{display:false},ticks:{color:ink,font:{family:'IBM Plex Mono',size:11},padding:6,callback:v=>nf(v)}}
+    }
+  },extra);
+}
+if(hasChart) Chart.defaults.font.family='IBM Plex Sans';
+
+const ok = k => !D.status || !D.status[k] || D.status[k].ok;
+const DAYS = (m,y) => new Date(Date.UTC(y,m+1,0)).getUTCDate();
+const shortName = n => { if(/^sub sistem/i.test(n)) return n; const p=n.split(' - '); const s=p[p.length-1].trim(); return s.toLowerCase().replace(/(^|\s|-)([a-z])/g,(m,a,b)=>a+b.toUpperCase()); };
+function ssRows(bulan, ambang){
+  return (D.subsistem[bulan]||[]).map(s=>{const dmp=s.dmn-s.outage;const cad=dmp-s.beban;
+    return {...s,dmp,cad,pct:cad/dmp*100,short:shortName(s.nama),status:cad<0?'defisit':cad<ambang?'waspada':'aman'};});
+}
+
+/* ---------- Sumber data ---------- */
+function renderSource(){
+  const sam = D.meta.samaran;
+  $('#src-tag').className = 'tag ' + (sam ? 'info' : 'good');
+  $('#src-tag').textContent = sam ? 'Data contoh' : 'Data dari file';
+  $('#src-text').innerHTML = sam
+    ? 'Nama instalasi disamarkan dan angka diskalakan. Unggah file <b>Lampiran EOB</b> untuk melihat data asli; file hanya dibaca di browser ini.'
+    : `<b>${esc(D.meta.sumber)}</b> · dibaca di browser ini, tidak dikirim ke mana pun.`;
+  $('#btn-contoh').hidden = sam;
+  $('#m-periode').textContent = D.meta.periode + (sam ? ' (contoh)' : '');
+  $('#f-src').textContent = 'Sumber data: ' + D.meta.sumber + '.';
+  document.querySelectorAll('.y-cur').forEach(e=>e.textContent=YEAR);
+  document.querySelectorAll('.y-prev').forEach(e=>e.textContent=YEAR-1);
+  // Status per modul
+  document.querySelectorAll('main section').forEach(sec=>{
+    const key = sec.id; const st = D.status && D.status[key];
+    const err = sec.querySelector('.mod-error'), body = sec.querySelector('.mod-body');
+    if(!err||!body) return;
+    if(st && !st.ok){ err.hidden=false; body.hidden=true; err.innerHTML=`<b>Data modul ${esc(st.label)} tidak terbaca</b><p>${esc(st.alasan)}</p><p>Modul lain tetap ditampilkan. Periksa struktur sheet terkait di file Excel, lalu unggah ulang.</p>`; }
+    else { err.hidden=true; body.hidden=false; }
+  });
+  document.querySelectorAll('#navlist a[data-mod]').forEach(a=>{ const st=D.status&&D.status[a.dataset.mod]; a.querySelector('.dot')?.remove(); if(st&&!st.ok) a.insertAdjacentHTML('beforeend','<i class="dot" aria-label="tidak terbaca"></i>'); });
+}
+
+/* ---------- 1. Ringkasan ---------- */
+function renderKpis(){
+  const R=D.ringkasan;
+  const tgl=R.bp_tanggal?new Date(R.bp_tanggal+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'–';
+  const rekor = R.rekor!=null && R.bp>R.rekor;
+  const sub = ok('pasokan') ? ssRows(BLN[LAST], D.meta.ambang_cadangan) : null;
+  const nWas = sub ? sub.filter(s=>s.status!=='aman').length : null;
+  const tiles=[
+    {hero:true,lbl:'Beban puncak sistem',val:nf(R.bp),unit:'MW',note:`${tgl}${R.bp_jam?', pukul '+R.bp_jam+' WIB':''}`,tag:rekor?['crit',`Rekor baru · +${nf(R.growth_rekor,1)}% dari rekor ${nf(R.rekor)} MW`]:['neutral',`Rekor ${nf(R.rekor)} MW`]},
+    {lbl:'Faktor beban',val:nf(R.lf,1),unit:'%',note:`Kumulatif ${nf(R.lf_kum,1)}%`},
+    {lbl:'ENS pelepasan beban',val:nf(R.ens),unit:'MWh',note:'UFLS · OLS · MLS',tag:R.ens===0?['good','Nihil']:['warn','Ada pelepasan']},
+    {lbl:'Hari tanpa GI padam',val:nf(R.htgp),unit:'hari',note:`dari ${DAYS(LAST,YEAR)} hari`},
+    {lbl:'Ekskursi tegangan',val:nf(R.ekskursi),unit:'GI',note:'di luar batas tegangan',tag:R.ekskursi===0?['good','Nihil']:['warn','Ada ekskursi']},
+    {lbl:'Penghantar berbeban >60%',val:nf(R.pht60),unit:'sirkit',note:'70, 150, dan 500 kV'},
+    {lbl:'Trafo distribusi >80%',val:nf(R.trf80),unit:'unit',note:'150/20 dan 70/20 kV'},
+    {lbl:'IBT berbeban >80%',val:nf(R.ibt80),unit:'unit',tag:R.ibt80>0?['warn','Perlu dipantau']:['good','Nihil']},
+    sub?{lbl:`Sub sistem cadangan <${D.meta.ambang_cadangan} MW`,val:nf(nWas),unit:`dari ${sub.length}`,note:'lihat modul 3',tag:nWas>0?['warn','Waspada']:['good','Aman']}:null,
+    {lbl:'Gangguan SCADATEL',val:nf(R.scadatel),unit:'kali',note:`Kumulatif ${nf(R.scadatel_kum)} kali`},
+    {lbl:'Energi dari pembangkit',val:nf(R.energi_gwh,1),unit:'GWh'}
+  ].filter(Boolean);
+  $('#kpis').innerHTML = tiles.map(t=>`<div class="kpi${t.hero?' hero':''}"><div class="lbl">${t.lbl}</div><div class="val">${t.val}<small>${t.unit}</small></div>${t.note?`<div class="note">${t.note}</div>`:''}${t.tag?`<span class="tag ${t.tag[0]}">${t.tag[1]}</span>`:''}</div>`).join('');
+  // Temuan utama dalam kalimat
+  const T=[];
+  if(rekor) T.push(['crit','Rekor',`Beban puncak ${nf(R.bp)} MW pada ${tgl} menjadi rekor baru, ${nf(R.growth_rekor,1)}% di atas rekor sebelumnya (${nf(R.rekor)} MW).`]);
+  else T.push(['neutral','Beban',`Beban puncak bulan ini ${nf(R.bp)} MW, di bawah rekor ${nf(R.rekor)} MW.`]);
+  if(sub){ const att=sub.filter(s=>s.status!=='aman').sort((a,b)=>a.cad-b.cad); const def=att.filter(s=>s.status==='defisit');
+    if(def.length) T.push(['crit','Defisit',`${def.length} sub sistem defisit pasokan (beban melebihi Daya Mampu Pasok): ${def.map(s=>`${s.short} (${nf(s.cad)} MW)`).join(', ')}.`]);
+    const was=att.filter(s=>s.status==='waspada');
+    if(was.length) T.push(['warn','Waspada',`${was.length} dari ${sub.length} sub sistem waspada dengan cadangan di bawah ${D.meta.ambang_cadangan} MW. Terkecil: ${was.slice(0,3).map(s=>`${s.short} (${nf(s.cad)} MW)`).join(', ')}.`]);
+    else T.push(['good','Aman',`Semua ${sub.length} sub sistem punya cadangan minimal ${D.meta.ambang_cadangan} MW.`]); }
+  if(ok('keandalan')){ const s=D.srt[LAST]; const g=D.gangguan.filter(x=>x.bulan===LAST&&x.tahun===YEAR); const pd=g.filter(x=>x.kategori==='PADAM').length;
+    T.push([pd?'warn':'good','Gangguan',`${g.length} gangguan transmisi bulan ini, ${pd} di antaranya menyebabkan padam (total ${nf(s.padam,1)} MW, ENS ${nf(s.ens,2)} MWh).`]); }
+  if(R.ibt80>0) T.push(['warn','IBT',`${nf(R.ibt80)} IBT berbeban di atas 80%.`]);
+  const nw=(D.catatan||[]).filter(n=>n.level==='warn').length;
+  if(nw) T.push(['warn','Data',`${nw} catatan kualitas data perlu dicek sebelum laporan dipaparkan (lihat Catatan Data).`]);
+  $('#temuan').innerHTML=T.map(([c,l,t])=>`<li><span class="tag ${c}">${l}</span><span>${esc(t)}</span></li>`).join('');
+}
+
+/* ---------- 2. Beban puncak ---------- */
+let bpMode='malam';
+function renderBP(){
+  const T=D.tren_bp;
+  const kc=bpMode+'_cur', kp=bpMode+'_prev';
+  const opts=baseOpts();
+  opts.plugins.tooltip.callbacks={label:c=>` ${c.dataset.label}: ${nf(c.parsed.y)} MW`};
+  mk('c-bp',{type:'line',data:{labels:BLN,datasets:[
+    {label:String(YEAR),data:T.map(t=>t[kc]),borderColor:css('--s1'),backgroundColor:css('--s1'),borderWidth:2.5,pointRadius:4,pointHoverRadius:6,tension:.25},
+    {label:String(YEAR-1),data:T.map(t=>t[kp]),borderColor:css('--ref'),backgroundColor:css('--ref'),borderWidth:2,borderDash:[5,4],pointRadius:3,tension:.25}
+  ]},options:opts});
+  const g=baseOpts(); g.scales.y.ticks.callback=v=>nf(v,0)+'%';
+  g.plugins.tooltip.callbacks={label:c=>` Tumbuh: ${nf(c.parsed.y,2)}%`};
+  mk('c-growth',{type:'bar',data:{labels:BLN,datasets:[{label:'Pertumbuhan',data:T.map(t=>t.malam_prev?(t.malam_cur/t.malam_prev-1)*100:null),backgroundColor:T.map((t,i)=>i===LAST?css('--s1'):css('--q2')),borderRadius:4,maxBarThickness:28}]},options:g});
+  const l=baseOpts(); l.scales.y.suggestedMin=70; l.scales.y.suggestedMax=90; l.scales.y.ticks.callback=v=>nf(v)+'%';
+  l.plugins.tooltip.callbacks={label:c=>` Faktor beban: ${nf(c.parsed.y,1)}%`};
+  mk('c-lf',{type:'line',data:{labels:BLN,datasets:[{label:'Faktor beban',data:T.map(t=>t.lf),borderColor:css('--s3'),backgroundColor:css('--s3'),borderWidth:2,pointRadius:3,tension:.25}]},options:l});
+}
+['malam','siang'].forEach(m=>$('#bp-'+m).addEventListener('click',()=>{bpMode=m;$('#bp-malam').setAttribute('aria-pressed',m==='malam');$('#bp-siang').setAttribute('aria-pressed',m==='siang');if(ok('beban'))renderBP();}));
+
+/* ---------- 3. Pasokan ---------- */
+let ssBulan, ambang=400;
+$('#ss-bulan').addEventListener('change',e=>{ssBulan=e.target.value;renderSS();});
+$('#ss-ambang').addEventListener('input',e=>{ambang=+e.target.value;$('#ss-ambang-v').textContent=ambang+' MW';renderSS();});
+const shade={id:'shade',beforeDatasetsDraw(ch){
+  const rows=ch.$rows; if(!rows) return; const {ctx,chartArea:a}=ch; const horiz=ch.options.indexAxis==='y';
+  const sc=horiz?ch.scales.y:ch.scales.x; const step=Math.abs((sc.getPixelForValue(1)-sc.getPixelForValue(0))||40);
+  rows.forEach((r,i)=>{ if(r.status==='aman') return; const c=sc.getPixelForValue(i); ctx.save();
+    ctx.fillStyle=css(r.status==='defisit'?'--crit-bg':'--warn-bg');
+    if(horiz) ctx.fillRect(a.left,c-step/2,a.right-a.left,step); else ctx.fillRect(c-step/2,a.top,step,a.bottom-a.top);
+    ctx.fillStyle=css(r.status==='defisit'?'--crit':'--warn'); ctx.font='600 11px "IBM Plex Sans", sans-serif';
+    const t=r.status==='defisit'?'⚠ DEFISIT':'⚠ WASPADA';
+    if(horiz){ctx.textAlign='right';ctx.textBaseline='top';ctx.fillText(t,a.right-4,c-step/2+3);} else {ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(t,c,a.top+4);}
+    ctx.restore(); });
+}};
+function renderSS(){
+  const rows=ssRows(ssBulan,ambang); const horiz=window.innerWidth<760;
+  $('#ss-box').style.height=horiz?(rows.length*58+60)+'px':'420px';
+  const o=baseOpts({indexAxis:horiz?'y':'x'});
+  o.interaction={mode:'index',intersect:false,axis:horiz?'y':'x'};
+  if(horiz){ o.scales={x:{...o.scales.y,stacked:true,grace:'4%'},y:{...o.scales.x,stacked:true}}; }
+  else { o.scales.x.stacked=true; o.scales.y.stacked=true; o.scales.y.grace='8%'; }
+  const cs = horiz?o.scales.y:o.scales.x;
+  cs.ticks={...cs.ticks,autoSkip:false,maxRotation:horiz?0:40,minRotation:0,font:{family:'IBM Plex Sans',size:horiz?12:11.5}};
+  o.plugins.tooltip.callbacks={
+    title:it=>rows[it[0].dataIndex].nama,
+    label:c=>{const r=rows[c.dataIndex]; if(c.datasetIndex===0) return ` Daya Mampu Pasok: ${nf(r.dmp,1)} MW`; if(c.datasetIndex===1) return ` Beban: ${nf(r.beban,1)} MW`; return ` Cadangan: ${nf(r.cad,1)} MW (${nf(r.pct,1)}%)`;},
+    afterBody:it=>{const r=rows[it[0].dataIndex]; return [`DMN ${nf(r.dmn,1)} MW · Outage & derating ${nf(r.outage,1)} MW`, r.status==='aman'?'Status: aman':`Status: ${r.status.toUpperCase()}`];}
+  };
+  const ch=mk('c-ss',{type:'bar',data:{labels:rows.map(r=>r.short),datasets:[
+    {label:'Daya Mampu Pasok',data:rows.map(r=>r.dmp),backgroundColor:css('--dmp'),stack:'a',borderRadius:4,borderSkipped:'start',maxBarThickness:30},
+    {label:'Beban',data:rows.map(r=>r.beban),backgroundColor:css('--beban'),stack:'b',borderSkipped:'start',maxBarThickness:30,borderRadius:0},
+    {label:'Cadangan',data:rows.map(r=>Math.max(0,r.cad)),backgroundColor:css('--cadangan'),stack:'b',borderRadius:4,borderSkipped:'start',maxBarThickness:30}
+  ]},options:{...o,datasets:{bar:{categoryPercentage:.72,barPercentage:.92}}},plugins:[shade]});
+  if(ch){ ch.$rows=rows; ch.update('none'); }
+  const att=rows.filter(r=>r.status!=='aman').sort((a,b)=>a.cad-b.cad);
+  const bi=BLN_ALL.indexOf(ssBulan);
+  $('#ss-sub').textContent=`${BULAN[bi]} ${YEAR} · ${att.length} dari ${rows.length} sub sistem di bawah ambang ${ambang} MW`;
+  $('#ss-list').innerHTML = att.length? att.map(r=>`<li><span class="tag ${r.status==='defisit'?'crit':'warn'}">⚠ ${r.status==='defisit'?'DEFISIT':'WASPADA'}</span><span class="nm">${esc(r.short)}${r.short!==r.nama?`<small title="${esc(r.nama)}">${esc(r.nama)}</small>`:''}</span><span class="v">${nf(r.cad,1)} MW<small>${nf(r.pct,1)}% dari DMP</small></span></li>`).join('')
+    : `<li><span class="tag good">Aman</span><span class="nm">Semua sub sistem punya cadangan ≥ ${ambang} MW</span><span></span></li>`;
+  const sum=k=>rows.reduce((a,r)=>a+r[k],0);
+  $('#ss-total').innerHTML=[['Daya Mampu Pasok',sum('dmp')],['Beban koinsiden',sum('beban')],['Cadangan',sum('cad')]].map(([l,v])=>`<div class="kpi"><div class="lbl">${l}</div><div class="val" style="font-size:22px">${nf(v)}<small>MW</small></div></div>`).join('')+
+    `<div class="kpi"><div class="lbl">Sub sistem aman</div><div class="val" style="font-size:22px">${rows.length-att.length}<small>dari ${rows.length}</small></div></div>`;
+}
+
+/* ---------- 4. Keandalan ---------- */
+function renderAndal(){
+  const sep=D.af_bulanan[LAST], srt=D.srt[LAST], h=D.htgp[LAST];
+  const pen=D.penyebab; const pb=pen.reduce((a,p)=>a+p.p_bln,0), tpb=pen.reduce((a,p)=>a+p.tp_bln,0);
+  const afMin=Math.min(...[...(D.af_pht||[]),...(D.af_trf||[])].map(x=>x.af).filter(v=>v!=null));
+  $('#kpi-andal').innerHTML=[
+    {lbl:'Gangguan penghantar',val:sep.pht_ggn,unit:'kali',note:`${nf(sep.pht_ggn_jam,1)} jam outage`},
+    {lbl:'Gangguan trafo',val:sep.trf_ggn,unit:'kali',note:`${nf(sep.trf_ggn_jam,1)} jam outage`},
+    {lbl:'Gangguan padam / tidak padam',val:`${pb} / ${tpb}`,unit:'kali',note:'Tabel 4, bulan ini'},
+    {lbl:'Beban padam akibat gangguan',val:nf(srt.padam,1),unit:'MW',note:`ENS ${nf(srt.ens,2)} MWh`},
+    {lbl:'SRT bulan ini',val:nf(srt.srt,1),unit:'menit',note:`Kumulatif ${nf(srt.srt_kum,1)} menit`},
+    {lbl:'AF terendah (penghantar & trafo)',val:isFinite(afMin)?nf(afMin,2):'–',unit:'%',note:'per kelompok instalasi, nilai dari Excel'}
+  ].map(t=>`<div class="kpi"><div class="lbl">${t.lbl}</div><div class="val">${t.val}<small>${t.unit}</small></div>${t.note?`<div class="note">${t.note}</div>`:''}</div>`).join('');
+  const A=D.af_bulanan;
+  const o=baseOpts(); o.plugins.tooltip.callbacks={label:c=>{const a=A[c.dataIndex];return c.datasetIndex===0?` Penghantar: ${a.pht_ggn} kali (${nf(a.pht_ggn_jam,1)} jam)`:` Trafo: ${a.trf_ggn} kali (${nf(a.trf_ggn_jam,1)} jam)`;}};
+  o.scales.y.ticks.precision=0;
+  mk('c-out',{type:'bar',data:{labels:BLN,datasets:[
+    {label:'Penghantar',data:A.map(a=>a.pht_ggn),backgroundColor:css('--s1'),borderRadius:4,maxBarThickness:18},
+    {label:'Trafo',data:A.map(a=>a.trf_ggn),backgroundColor:css('--s2'),borderRadius:4,maxBarThickness:18}]},options:{...o,datasets:{bar:{categoryPercentage:.7,barPercentage:.9}}}});
+  const P=pen.filter(p=>p.p_kum+p.tp_kum>0).sort((a,b)=>(b.p_kum+b.tp_kum)-(a.p_kum+a.tp_kum));
+  const s=baseOpts({indexAxis:'y'}); s.interaction={mode:'index',intersect:false,axis:'y'};
+  s.scales={x:{...s.scales.y,stacked:true,ticks:{...s.scales.y.ticks,precision:0}},y:{...s.scales.x,stacked:true}};
+  s.plugins.tooltip.callbacks={label:c=>` ${c.dataset.label}: ${c.parsed.x} kali`};
+  mk('c-sebab',{type:'bar',data:{labels:P.map(p=>p.kategori),datasets:[
+    {label:'Padam',data:P.map(p=>p.p_kum),backgroundColor:css('--crit'),maxBarThickness:16},
+    {label:'Tidak padam',data:P.map(p=>p.tp_kum),backgroundColor:css('--ref'),maxBarThickness:16}]},options:s});
+  const so=baseOpts(); so.plugins.tooltip.callbacks={label:c=>{const r=D.srt[c.dataIndex];return [` SRT: ${nf(r.srt,1)} menit`,` Padam ${nf(r.padam,1)} MW · ENS ${nf(r.ens,2)} MWh`];}};
+  mk('c-srt',{type:'bar',data:{labels:BLN,datasets:[{label:'SRT',data:D.srt.map(r=>r.srt),backgroundColor:D.srt.map((r,i)=>i===LAST?css('--s1'):css('--q2')),borderRadius:4,maxBarThickness:28}]},options:so});
+  $('#htgp-bln').textContent=BULAN[LAST]+' '+YEAR;
+  const days=DAYS(LAST,YEAR), tset=new Set(h.hari_trans), dset=new Set(h.hari_dist);
+  let html=''; for(let d=1;d<=days;d++){const c=(tset.has(d)?' t':'')+(dset.has(d)?' d':'');const lab=tset.has(d)&&dset.has(d)?'GI padam transmisi dan distribusi':tset.has(d)?'GI padam transmisi':dset.has(d)?'GI padam distribusi':'tanpa GI padam';html+=`<div class="${c.trim()}" title="${d} ${BULAN[LAST]}: ${lab}">${d}</div>`;}
+  $('#cal').innerHTML=html;
+  const union=new Set([...tset,...dset]).size;
+  $('#htgp-tag').textContent=`${days-union} hari tanpa GI padam`;
+  $('#htgp-trend').textContent='HTGP gabungan per bulan: '+D.htgp.map((x,i)=>`${x.bulan} ${DAYS(i,YEAR)-new Set([...x.hari_trans,...x.hari_dist]).size}`).join(' · ');
+  const G=D.gangguan.filter(g=>g.bulan===LAST&&g.tahun===YEAR);
+  $('#t-ggn').innerHTML=`<thead><tr><th>Keluar</th><th>Masuk</th><th>UPT</th><th>Lokasi · Bay</th><th>Penyebab</th><th>Status</th><th class="r">Padam</th><th class="r">ENS</th><th class="r">SRT</th></tr></thead><tbody>`+
+    (G.length?G.map(g=>`<tr><td class="num">${esc(g.keluar)}</td><td class="num">${esc(g.masuk)}</td><td>${esc(g.upt)}</td><td>${esc(g.lokasi)}<br><span style="color:var(--muted)">${esc(g.bay)}</span></td><td>${esc(g.penyebab)}</td><td><span class="tag ${g.kategori==='PADAM'?'crit':'neutral'}">${g.kategori==='PADAM'?'Padam':'Tidak padam'}</span></td><td class="num r">${g.padam!=null?nf(g.padam,2):'–'}</td><td class="num r">${g.ens!=null?nf(g.ens,2):'–'}</td><td class="num r">${g.srt!=null?nf(g.srt,1):'–'}</td></tr>`).join(''):'<tr><td colspan="9">Tidak ada gangguan sistem transmisi bulan ini.</td></tr>')+'</tbody>';
+}
+
+/* ---------- 5. Tegangan ---------- */
+let lv='150'; const LV=['66','70','150','500'];
+$('#lv-seg').innerHTML=LV.map(l=>`<button type="button" data-lv="${l}" aria-pressed="${l===lv}">${l} kV</button>`).join('');
+$('#lv-seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;lv=b.dataset.lv;[...$('#lv-seg').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.lv===lv));if(ok('tegangan'))renderTeg();});
+function renderTeg(){
+  const T=D.tegangan; const g=k=>T.map(t=>t[lv]?t[lv][k]:null);
+  const o=baseOpts(); o.scales.y.ticks.callback=v=>nf(v,lv==='500'?0:1); o.scales.y.grace='6%';
+  o.plugins.tooltip.callbacks={label:c=>` ${c.dataset.label}: ${nf(c.parsed.y,2)} kV`};
+  const ref=css('--ref');
+  mk('c-teg',{type:'line',data:{labels:BLN,datasets:[
+    {label:'Realisasi maks',data:g('max_a'),borderColor:css('--s1'),backgroundColor:css('--s1'),borderWidth:2.2,pointRadius:3,tension:.2},
+    {label:'Rencana maks',data:g('max_r'),borderColor:ref,borderDash:[5,4],borderWidth:1.6,pointRadius:0,stepped:'middle'},
+    {label:'Realisasi min',data:g('min_a'),borderColor:css('--s2'),backgroundColor:css('--s2'),borderWidth:2.2,pointRadius:3,tension:.2},
+    {label:'Rencana min',data:g('min_r'),borderColor:ref,borderDash:[5,4],borderWidth:1.6,pointRadius:0,stepped:'middle'}]},options:o});
+  const S=T[LAST];
+  $('#t-teg').innerHTML=`<thead><tr><th>Level</th><th class="r">Min renc.</th><th class="r">Min real</th><th class="r">Maks renc.</th><th class="r">Maks real</th><th>Status</th></tr></thead><tbody>`+
+    LV.filter(l=>S[l]).map(l=>{const x=S[l];const lo=x.min_a<x.min_r, hi=x.max_a>x.max_r;const st=lo&&hi?'Di bawah min & di atas maks':lo?'Di bawah min rencana':hi?'Di atas maks rencana':'Dalam rentang';
+      return `<tr><td>${l} kV</td><td class="num r">${nf(x.min_r,2)}</td><td class="num r">${nf(x.min_a,2)}</td><td class="num r">${nf(x.max_r,2)}</td><td class="num r">${nf(x.max_a,2)}</td><td><span class="tag ${lo||hi?'warn':'good'}">${st}</span></td></tr>`;}).join('')+'</tbody>';
+  const R=D.ringkasan||{}; const E=D.ekskursi||[];
+  $('#kpi-eks').innerHTML=`<div class="kpi"><div class="lbl">Ekskursi tegangan bulan ini</div><div class="val" style="font-size:22px">${nf(R.ekskursi)}<small>GI</small></div>${R.ekskursi===0?'<span class="tag good">Nihil</span>':''}<div class="note">dari sheet Rangkuman</div></div>`+
+    (E.length?`<div class="kpi"><div class="lbl">Ekskursi ${E[0].bulan}–${E[E.length-1].bulan} (Tabel 9)</div><div class="val" style="font-size:22px">${nf(E.reduce((a,e)=>a+(e.ekskursi||0),0))}<small>GI</small></div><div class="note">dari ${nf(E[E.length-1].total)} GITET-GI</div></div>`:'');
+}
+
+/* ---------- 6. Pembebanan ---------- */
+function renderBeban(){
+  const P=D.pht60, pk=Object.keys(P), pc=['--s4','--s1','--s3','--s5','--ref'];
+  const pcol=k=>/500/.test(k)?'--s4':/150/.test(k)?'--s1':/70/.test(k)?'--s3':'--s5';
+  $('#lg-pht').innerHTML=pk.map(k=>`<span><i style="background:var(${pcol(k)})"></i>${esc(k)}</span>`).join('');
+  const o=baseOpts(); o.scales.y.ticks.precision=0; o.plugins.tooltip.callbacks={label:c=>` ${c.dataset.label}: ${c.parsed.y} sirkit`};
+  mk('c-pht',{type:'line',data:{labels:BLN,datasets:pk.map(k=>({label:k,data:P[k],borderColor:css(pcol(k)),backgroundColor:css(pcol(k)),borderWidth:2.2,pointRadius:3,tension:.2}))},options:o});
+  const TR=D.trf80, keys=Object.keys(TR), cols=['--s4','--s5','--s1','--s3','--ref'];
+  $('#lg-trf').innerHTML=keys.map((k,i)=>`<span><i style="background:var(${cols[i%cols.length]})"></i>${esc(k)}</span>`).join('');
+  const t=baseOpts(); t.scales.x.stacked=true; t.scales.y.stacked=true; t.scales.y.ticks.precision=0;
+  t.plugins.tooltip.callbacks={label:c=>` ${c.dataset.label}: ${c.parsed.y} unit`,footer:it=>`Total: ${it.reduce((a,x)=>a+x.parsed.y,0)} unit`};
+  mk('c-trf',{type:'bar',data:{labels:BLN,datasets:keys.map((k,i)=>({label:k,data:TR[k],backgroundColor:css(cols[i%cols.length]),maxBarThickness:30}))},options:t});
+  const I=[...D.band_ibt].sort((a,b)=>(b.b60+b.b80)-(a.b60+a.b80));
+  $('#ibt-box').style.height=(I.length*22+50)+'px';
+  const ib=baseOpts({indexAxis:'y'}); ib.interaction={mode:'index',intersect:false,axis:'y'};
+  ib.scales={x:{...ib.scales.y,stacked:true,max:100,ticks:{...ib.scales.y.ticks,callback:v=>v+'%'}},y:{...ib.scales.x,stacked:true,ticks:{...ib.scales.x.ticks,autoSkip:false,font:{family:'IBM Plex Sans',size:11}}}};
+  ib.plugins.tooltip.callbacks={label:c=>` ${c.dataset.label}: ${nf(c.parsed.x,1)}% waktu`};
+  const cap=s=>/^(ibt|trafo)\s+\d+$/i.test(s)?s:s.toLowerCase().replace(/(^|\s)([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\bIbt\b/,'IBT').replace(/\b(Iv|Iii|Ii|Vi|Vii|V|I)\b/g,m=>m.toUpperCase());
+  mk('c-ibt',{type:'bar',data:{labels:I.map(x=>cap(x.nama)),datasets:[['0–40%','b0','--q1'],['40–60%','b40','--q2'],['60–80%','b60','--q3'],['80–100%','b80','--q4']].map(([l,k,c])=>({label:l,data:I.map(x=>x[k]),backgroundColor:css(c),barPercentage:.85,categoryPercentage:.9}))},options:ib});
+  const TT=[...D.band_trf].sort((a,b)=>(b.b60+b.b80)-(a.b60+a.b80)).slice(0,12);
+  $('#trf-n').textContent=D.band_trf_total||D.band_trf.length;
+  $('#t-trf').innerHTML=`<thead><tr><th>Trafo</th><th class="r">60–80%</th><th class="r">80–100%</th><th>Sebaran</th></tr></thead><tbody>`+
+    TT.map(x=>`<tr><td>${esc(cap(x.nama))}</td><td class="num r">${nf(x.b60,1)}%</td><td class="num r">${nf(x.b80,1)}%</td><td><div class="minibar" aria-hidden="true"><span style="width:${x.b0}%;background:var(--q1)"></span><span style="width:${x.b40}%;background:var(--q2)"></span><span style="width:${x.b60}%;background:var(--q3)"></span><span style="width:${x.b80}%;background:var(--q4)"></span></div></td></tr>`).join('')+'</tbody>';
+}
+
+/* ---------- 7. ROB ---------- */
+function renderROB(){
+  const R=D.rob.per_jenis, T=D.rob.total;
+  const pct=T.jumlah?T.terlaksana/T.jumlah*100:0;
+  $('#kpi-rob').innerHTML=[
+    ['Total pekerjaan',nf(T.jumlah),'pekerjaan',''],
+    ['Terlaksana',nf(T.terlaksana),'pekerjaan',`${nf(pct,1)}% dari total`],
+    ['ABK',nf(T.abk),'pekerjaan',`${nf(T.jumlah?T.abk/T.jumlah*100:0,1)}% dari total`],
+    ['Status belum diisi',nf(T.kosong),'pekerjaan',T.kosong?'perlu dilengkapi':'lengkap']
+  ].map(([l,v,u,n],i)=>`<div class="kpi"><div class="lbl">${l}</div><div class="val">${v}<small>${u}</small></div>${n?`<div class="note">${n}</div>`:''}${i===3?(T.kosong>0?'<span class="tag warn">Data belum lengkap</span>':'<span class="tag good">Lengkap</span>'):''}</div>`).join('');
+  const o=baseOpts({indexAxis:'y'}); o.interaction={mode:'index',intersect:false,axis:'y'};
+  o.scales={x:{...o.scales.y,stacked:true,ticks:{...o.scales.y.ticks,precision:0}},y:{...o.scales.x,stacked:true}};
+  o.plugins.tooltip.callbacks={label:c=>` ${c.dataset.label}: ${c.parsed.x}`,footer:it=>{const r=R[it[0].dataIndex];return `Realisasi ${nf(r.terlaksana/r.jumlah*100,1)}% dari ${r.jumlah}`;}};
+  mk('c-rob',{type:'bar',data:{labels:R.map(r=>r.jenis),datasets:[
+    {label:'Terlaksana',data:R.map(r=>r.terlaksana),backgroundColor:css('--good'),maxBarThickness:22},
+    {label:'ABK',data:R.map(r=>r.abk),backgroundColor:css('--s2'),maxBarThickness:22},
+    {label:'Belum diisi',data:R.map(r=>r.kosong),backgroundColor:css('--ref'),maxBarThickness:22}]},options:o});
+  const tg=D.rob.per_teg, levels=Object.keys(tg).sort((a,b)=>(parseInt(b)||0)-(parseInt(a)||0));
+  $('#t-rob').innerHTML=`<thead><tr><th>Level</th><th class="r">Terlaksana</th><th class="r">ABK</th><th class="r">Belum diisi</th><th class="r">Total</th><th class="r">Realisasi</th></tr></thead><tbody>`+
+    levels.map(l=>{const x=tg[l],t=(x.Terlaksana||0)+(x.ABK||0)+(x['Belum diisi']||0);return `<tr><td>${esc(l.replace(/kv/i,' kV'))}</td><td class="num r">${x.Terlaksana||0}</td><td class="num r">${x.ABK||0}</td><td class="num r">${x['Belum diisi']||0}</td><td class="num r">${t}</td><td class="num r">${nf((x.Terlaksana||0)/t*100,1)}%</td></tr>`;}).join('')+'</tbody>';
+}
+
+function renderNotes(){
+  const N=[...(D.catatan||[])].sort((a,b)=>(a.level==='warn'?0:1)-(b.level==='warn'?0:1));
+  $('#notes').innerHTML = N.length ? N.map(n=>`<li><span class="tag ${n.level==='warn'?'warn':'info'}">${n.level==='warn'?'Perlu dicek':'Info'}</span><span><small>${esc(n.modul)}</small>${esc(n.teks)}</span></li>`).join('') : '<li><span class="tag good">Bersih</span><span>Tidak ada catatan kualitas data.</span></li>';
+}
+
+function renderAll(){
+  LAST=D.meta.bulan; YEAR=D.meta.tahun; BLN=BLN_ALL.slice(0,LAST+1);
+  if(!ssBulan || !D.subsistem || !D.subsistem[ssBulan]) ssBulan=BLN[LAST];
+  const sel=$('#ss-bulan'); sel.innerHTML=BLN.filter(b=>D.subsistem&&D.subsistem[b]).map(b=>`<option value="${b}"${b===ssBulan?' selected':''}>${BULAN[BLN_ALL.indexOf(b)]} ${YEAR}</option>`).join('');
+  renderSource();
+  const safe=(k,fn)=>{ if(!ok(k)) return; try{fn();}catch(e){ console.error(e); D.status=D.status||{}; D.status[k]={ok:false,label:k,alasan:'Data terbaca tetapi gagal ditampilkan: '+e.message}; renderSource(); } };
+  if(D.ringkasan) safe('ringkasan',renderKpis);
+  safe('beban',renderBP); safe('pasokan',renderSS); safe('keandalan',renderAndal); safe('tegangan',renderTeg); safe('pembebanan',renderBeban); safe('rob',renderROB);
+  renderNotes();
+}
+
+/* ---------- Unggah file ---------- */
+function showMsg(t,cls){ const m=$('#src-msg'); m.hidden=!t; m.className='msg'+(cls?' '+cls:''); m.textContent=t||''; }
+async function loadFile(f){
+  if(!f) return;
+  if(!/\.xlsx$/i.test(f.name)){ showMsg('Format file harus .xlsx (Excel). File .xls lama perlu disimpan ulang sebagai .xlsx.','err'); return; }
+  $('#btn-upload').setAttribute('aria-disabled','true'); showMsg('Membaca '+f.name+'…');
+  try{
+    const wb=await XlsxLite.readWorkbook(await f.arrayBuffer());
+    const data=EOBReader.readEOB(wb,f.name);
+    D=data; ssBulan=null; renderAll();
+    const bad=Object.values(D.status).filter(s=>!s.ok);
+    const nw=D.catatan.filter(n=>n.level==='warn').length;
+    showMsg(`File terbaca: periode ${D.meta.periode}. ${bad.length?bad.length+' modul tidak terbaca ('+bad.map(b=>b.label).join(', ')+'). ':'Semua modul terbaca. '}${nw} catatan data perlu dicek.`, bad.length?'err':'ok');
+    window.scrollTo({top:0});
+  }catch(e){ console.error(e); showMsg('File tidak bisa dibaca: '+(e.message||e)+' Dashboard tetap menampilkan data sebelumnya.','err'); }
+  finally{ $('#btn-upload').removeAttribute('aria-disabled'); $('#file').value=''; }
+}
+$('#file').addEventListener('change',e=>loadFile(e.target.files[0]));
+$('#btn-contoh').addEventListener('click',()=>{D=window.EOB_DEFAULT;ssBulan=null;showMsg('');renderAll();});
+['dragenter','dragover'].forEach(t=>document.addEventListener(t,e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')){e.preventDefault();document.body.classList.add('dragging');}}));
+['dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{if(t==='dragleave'&&e.relatedTarget)return;document.body.classList.remove('dragging');}));
+document.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length){e.preventDefault();loadFile(e.dataTransfer.files[0]);}});
+
+if(!hasChart) showMsg('Library grafik tidak termuat (periksa koneksi internet). Angka dan tabel tetap tampil, grafik tidak.','err');
+renderAll();
+
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',renderAll);}catch(e){}
+new MutationObserver(renderAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let wasNarrow=window.innerWidth<760;
+window.addEventListener('resize',()=>{const n=window.innerWidth<760;if(n!==wasNarrow){wasNarrow=n;if(ok('pasokan'))renderSS();}});
+const links=[...document.querySelectorAll('#navlist a')];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));const on=links.find(a=>a.classList.contains('on'));if(on){const w=on.closest('.wrap');w.scrollTo({left:Math.max(0,on.offsetLeft-w.clientWidth/2+on.offsetWidth/2)});}}});},{rootMargin:'-45% 0px -50% 0px'});
+document.querySelectorAll('main section').forEach(s=>io.observe(s));
+})();
+</script>
+</body>
+</html>
